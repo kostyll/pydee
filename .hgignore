@@ -5,8 +5,9 @@
 \.orig$
 ^build/
 ^dist/
-^userconfig.egg-info/
+^formlayout.egg-info/
 \pypi.txt
 \.bat$
 \makepyqt.pyw
 \Thumbs.db
+\clone.

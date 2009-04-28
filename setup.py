@@ -29,8 +29,7 @@ License version 2 as published by the Free Software Foundation.
 """
 
 import formlayout as module
-import os.path as osp
-name = osp.split(osp.dirname(module.__file__))[-1]
+name = 'formlayout'
 version = module.__version__
 py_modules = ['formlayout']
 package_data = {}
