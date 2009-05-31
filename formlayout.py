@@ -61,9 +61,7 @@ if QApplication.startingUp():
 
 class ColorButton(QPushButton):
     """
-    Derived from ColorButton(QToolButton):
-    Copyright (C) 2007 David Boddie <david@boddie.org.uk>
-    Licensed under GNU GPL v2
+    Color choosing push button
     """
     __pyqtSignals__ = ("colorChanged(QColor)",)
     
