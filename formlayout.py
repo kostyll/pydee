@@ -38,10 +38,10 @@ STDERR = sys.stderr
 try:
     from PyQt4.QtGui import QFormLayout
 except ImportError:
-    raise ImportError, "Warning: PyQt4 version is outdated (formlayout requires >v4.3)"
+    raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
 
-from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
-                         QIcon, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
+from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
+                         QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
                          QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
                          QPixmap, QTabWidget, QApplication, QStackedWidget)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
@@ -300,8 +300,9 @@ class FormDialog(QDialog):
         self.setLayout(layout)
         
         self.setWindowTitle(title)
-        if isinstance(icon, QIcon):
-            self.setWindowIcon(icon)
+        if not isinstance(icon, QIcon):
+            icon = QWidget().style().standardIcon(QStyle.SP_MessageBoxQuestion)
+        self.setWindowIcon(icon)
         
     def accept(self):
         self.data = self.formwidget.get()
