@@ -38,7 +38,7 @@ setup(
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
       url = 'http://code.google.com/p/%s/' % name,
-      license = 'GPLv3',
+      license = 'MIT',
       keywords = keywords,
       platforms = ['any'],
       py_modules = py_modules,
