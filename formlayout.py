@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 __license__ = __doc__
 
 DEBUG = False
@@ -49,10 +49,11 @@ except ImportError:
 from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
                          QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
                          QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
-                         QPixmap, QTabWidget, QApplication, QStackedWidget)
+                         QPixmap, QTabWidget, QApplication, QStackedWidget,
+                         QDateEdit, QDateTimeEdit)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
-
+from datetime import date
 
 # Create a QApplication instance if the module is used directly from interpreter
 if QApplication.startingUp():
@@ -201,6 +202,13 @@ class FormWidget(QWidget):
                 field = QSpinBox(self)
                 field.setValue(value)
                 field.setMaximum(1e9)
+            elif isinstance(value, date):
+                if hasattr(value, 'hour'):
+                    field = QDateTimeEdit(self)
+                    field.setDateTime(value)
+                else:
+                    field = QDateEdit(self)
+                    field.setDate(value)
             else:
                 field = QLineEdit(repr(value), self)
             self.formlayout.addRow(label, field)
@@ -227,6 +235,11 @@ class FormWidget(QWidget):
                 value = float(field.text())
             elif isinstance(value, int):
                 value = int(field.value())
+            elif isinstance(value, date):
+                if hasattr(value, 'hour'):
+                    value = field.dateTime().toPyDateTime()
+                else:
+                    value = field.date().toPyDate()
             else:
                 value = eval(str(field.text()))
             valuelist.append(value)
@@ -363,6 +376,7 @@ if __name__ == "__main__":
                 ('int', 12),
                 ('color', '#123409'),
                 ('bool', True),
+                ('datetime', date(2010, 10, 10)),
                 ]
         
     def create_datagroup_example():
