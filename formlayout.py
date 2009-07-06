@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 __license__ = __doc__
 
 DEBUG = False
@@ -54,10 +54,6 @@ from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
 from datetime import date
-
-# Create a QApplication instance if the module is used directly from interpreter
-if QApplication.startingUp():
-    QApplication([])
 
 
 class ColorButton(QPushButton):
@@ -357,6 +353,12 @@ def fedit(data, title="", comment="", icon=None, parent=None):
           * the first element will be the selected index (or value)
           * the other elements can be couples (key, value) or only values
     """
+    
+    # Create a QApplication instance if no instance currently exists
+    # (e.g. if the module is used directly from the interpreter)
+    if QApplication.startingUp():
+        QApplication([])
+        
     dialog = FormDialog(data, title, comment, icon, parent)
     if dialog.exec_():
         return dialog.get()
