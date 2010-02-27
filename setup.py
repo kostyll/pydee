@@ -34,7 +34,7 @@ setup(
       name = name,
       version = version,
       description = description,
-      download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name, name, version),
+      download_url = 'http://%s.googlecode.com/files/%s-%s.tar.gz' % (name, name, version),
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
       url = 'http://code.google.com/p/%s/' % name,
@@ -51,5 +51,6 @@ setup(
         'Operating System :: POSIX',
         'Operating System :: Unix',
         'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
         ],
     )
