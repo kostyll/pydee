@@ -455,7 +455,7 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
     # Create a QApplication instance if no instance currently exists
     # (e.g. if the module is used directly from the interpreter)
     if QApplication.startingUp():
-        QApplication([])
+        _app = QApplication([])
         
     dialog = FormDialog(data, title, comment, icon, parent, apply)
     if dialog.exec_():
