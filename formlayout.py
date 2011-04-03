@@ -3,7 +3,7 @@
 formlayout
 ==========
 
-Module creating PyQt4 form dialogs/layouts to edit various type of parameters
+Module creating Qt form dialogs/layouts to edit various type of parameters
 
 
 formlayout License Agreement (MIT License)
@@ -34,10 +34,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # History:
+# 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.7'
+__version__ = '1.0.10'
 __license__ = __doc__
 
 DEBUG = False
@@ -50,15 +51,16 @@ try:
 except ImportError:
     raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
 
-from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
-                         QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
-                         QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
-                         QPixmap, QTabWidget, QApplication, QStackedWidget,
-                         QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
-                         QFontDatabase, QGridLayout)
+from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
+                         QIcon, QStyle, QDialogButtonBox, QHBoxLayout,
+                         QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
+                         QColorDialog, QPixmap, QTabWidget, QApplication,
+                         QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
+                         QFontComboBox, QFontDatabase, QGridLayout,
+                         QDoubleValidator)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
-from datetime import date
+import datetime
 
 
 class ColorButton(QPushButton):
@@ -171,7 +173,6 @@ def qfont_to_tuple(font):
     return (unicode(font.family()), int(font.pointSize()),
             font.italic(), font.bold())
 
-
 class FontLayout(QGridLayout):
     """Font selection"""
     def __init__(self, value, parent=None):
@@ -214,9 +215,14 @@ class FontLayout(QGridLayout):
         return qfont_to_tuple(font)
 
 
+def is_edit_valid(edit):
+    text = edit.text()
+    state, _t = edit.validator().validate(text, 0)
+    return state == QDoubleValidator.Acceptable
+
 class FormWidget(QWidget):
     def __init__(self, data, comment="", parent=None):
-        super(FormWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         from copy import deepcopy
         self.data = deepcopy(data)
         self.widgets = []
@@ -230,7 +236,13 @@ class FormWidget(QWidget):
             print "*"*80
             print "COMMENT:", comment
             print "*"*80
-        self.setup()
+            
+    def get_dialog(self):
+        """Return FormDialog instance"""
+        dialog = self.parent()
+        while not isinstance(dialog, QDialog):
+            dialog = dialog.parent()
+        return dialog
 
     def setup(self):
         for label, value in self.data:
@@ -275,17 +287,21 @@ class FormWidget(QWidget):
                 field.setCheckState(Qt.Checked if value else Qt.Unchecked)
             elif isinstance(value, float):
                 field = QLineEdit(repr(value), self)
+                field.setValidator(QDoubleValidator(field))
+                dialog = self.get_dialog()
+                dialog.register_float_field(field)
+                self.connect(field, SIGNAL('textChanged(QString)'),
+                             lambda text: dialog.update_buttons())
             elif isinstance(value, int):
                 field = QSpinBox(self)
-                field.setValue(value)
                 field.setRange(-1e9, 1e9)
-            elif isinstance(value, date):
-                if hasattr(value, 'hour'):
-                    field = QDateTimeEdit(self)
-                    field.setDateTime(value)
-                else:
-                    field = QDateEdit(self)
-                    field.setDate(value)
+                field.setValue(value)
+            elif isinstance(value, datetime.datetime):
+                field = QDateTimeEdit(self)
+                field.setDateTime(value)
+            elif isinstance(value, datetime.date):
+                field = QDateEdit(self)
+                field.setDate(value)
             else:
                 field = QLineEdit(repr(value), self)
             self.formlayout.addRow(label, field)
@@ -314,11 +330,10 @@ class FormWidget(QWidget):
                 value = float(field.text())
             elif isinstance(value, int):
                 value = int(field.value())
-            elif isinstance(value, date):
-                if hasattr(value, 'hour'):
-                    value = field.dateTime().toPyDateTime()
-                else:
-                    value = field.date().toPyDate()
+            elif isinstance(value, datetime.datetime):
+                value = field.dateTime().toPyDateTime()
+            elif isinstance(value, datetime.date):
+                value = field.date().toPyDate()
             else:
                 value = eval(str(field.text()))
             valuelist.append(value)
@@ -327,7 +342,7 @@ class FormWidget(QWidget):
 
 class FormComboWidget(QWidget):
     def __init__(self, datalist, comment="", parent=None):
-        super(FormComboWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.combobox = QComboBox()
@@ -344,6 +359,10 @@ class FormComboWidget(QWidget):
             widget = FormWidget(data, comment=comment, parent=self)
             self.stackwidget.addWidget(widget)
             self.widgetlist.append(widget)
+            
+    def setup(self):
+        for widget in self.widgetlist:
+            widget.setup()
 
     def get(self):
         return [ widget.get() for widget in self.widgetlist]
@@ -351,7 +370,7 @@ class FormComboWidget(QWidget):
 
 class FormTabWidget(QWidget):
     def __init__(self, datalist, comment="", parent=None):
-        super(FormTabWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         layout = QVBoxLayout()
         self.tabwidget = QTabWidget()
         layout.addWidget(self.tabwidget)
@@ -366,6 +385,10 @@ class FormTabWidget(QWidget):
             self.tabwidget.setTabToolTip(index, comment)
             self.widgetlist.append(widget)
             
+    def setup(self):
+        for widget in self.widgetlist:
+            widget.setup()
+            
     def get(self):
         return [ widget.get() for widget in self.widgetlist]
 
@@ -374,7 +397,7 @@ class FormDialog(QDialog):
     """Form Dialog"""
     def __init__(self, data, title="", comment="",
                  icon=None, parent=None, apply=None):
-        super(FormDialog, self).__init__(parent)
+        QDialog.__init__(self, parent)
 
         self.apply_callback = apply
         
@@ -391,8 +414,14 @@ class FormDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.formwidget)
         
+        self.float_fields = []
+        self.formwidget.setup()
+        
         # Button box
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.bbox = bbox = QDialogButtonBox(QDialogButtonBox.Ok
+                                            |QDialogButtonBox.Cancel)
+        self.connect(self.formwidget, SIGNAL('update_buttons()'),
+                     self.update_buttons)
         if self.apply_callback is not None:
             apply_btn = bbox.addButton(QDialogButtonBox.Apply)
             self.connect(apply_btn, SIGNAL("clicked()"), self.apply)
@@ -406,6 +435,19 @@ class FormDialog(QDialog):
         if not isinstance(icon, QIcon):
             icon = QWidget().style().standardIcon(QStyle.SP_MessageBoxQuestion)
         self.setWindowIcon(icon)
+        
+    def register_float_field(self, field):
+        self.float_fields.append(field)
+        
+    def update_buttons(self):
+        valid = True
+        for field in self.float_fields:
+            if not is_edit_valid(field):
+                valid = False
+        for btn_type in (QDialogButtonBox.Ok, QDialogButtonBox.Apply):
+            btn = self.bbox.button(btn_type)
+            if btn is not None:
+                btn.setEnabled(valid)
         
     def accept(self):
         self.data = self.formwidget.get()
@@ -477,7 +519,8 @@ if __name__ == "__main__":
                 ('font', ('Arial', 10, False, True)),
                 ('color', '#123409'),
                 ('bool', True),
-                ('datetime', date(2010, 10, 10)),
+                ('date', datetime.date(2010, 10, 10)),
+                ('datetime', datetime.datetime(2010, 10, 10)),
                 ]
         
     def create_datagroup_example():
