@@ -53,7 +53,7 @@ STDERR = sys.stderr
 _modname = os.environ.setdefault('QT_API', 'pyqt')
 assert _modname in ('pyqt', 'pyside')
 
-if os.environ['QT_API'] != 'pyqt':
+if os.environ['QT_API'] == 'pyqt':
     try:
         from PyQt4.QtGui import QFormLayout
     except ImportError:
