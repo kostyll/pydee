@@ -34,33 +34,49 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # History:
+# 1.0.11: added support for PySide
 # 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
 __license__ = __doc__
 
 DEBUG = False
 
+import os
 import sys
+import datetime
+
 STDERR = sys.stderr
 
-try:
-    from PyQt4.QtGui import QFormLayout
-except ImportError:
-    raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
+_modname = os.environ.setdefault('QT_API', 'pyqt')
+assert _modname in ('pyqt', 'pyside')
 
-from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
-                         QIcon, QStyle, QDialogButtonBox, QHBoxLayout,
-                         QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
-                         QColorDialog, QPixmap, QTabWidget, QApplication,
-                         QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
-                         QFontComboBox, QFontDatabase, QGridLayout,
-                         QDoubleValidator)
-from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
-                          pyqtSignature, pyqtProperty)
-import datetime
+if os.environ['QT_API'] != 'pyqt':
+    try:
+        from PyQt4.QtGui import QFormLayout
+    except ImportError:
+        raise ImportError, "formlayout requires PyQt4 4.4+ (or PySide)"
+    from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
+                     QIcon, QStyle, QDialogButtonBox, QHBoxLayout,
+                     QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
+                     QColorDialog, QPixmap, QTabWidget, QApplication,
+                     QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
+                     QFontComboBox, QFontDatabase, QGridLayout,
+                     QDoubleValidator)
+    from PyQt4.QtCore import Qt, SIGNAL, SLOT, QSize
+    from PyQt4.QtCore import pyqtSlot as Slot
+    from PyQt4.QtCore import pyqtProperty as Property
+else:
+    from PySide.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
+                     QIcon, QStyle, QDialogButtonBox, QHBoxLayout,
+                     QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
+                     QColorDialog, QPixmap, QTabWidget, QApplication,
+                     QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
+                     QFontComboBox, QFontDatabase, QGridLayout,
+                     QDoubleValidator, QFormLayout)
+    from PySide.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 
 
 class ColorButton(QPushButton):
@@ -86,7 +102,7 @@ class ColorButton(QPushButton):
     def get_color(self):
         return self._color
     
-    @pyqtSignature("QColor")
+    @Slot(QColor)
     def set_color(self, color):
         if color != self._color:
             self._color = color
@@ -95,7 +111,7 @@ class ColorButton(QPushButton):
             pixmap.fill(color)
             self.setIcon(QIcon(pixmap))
     
-    color = pyqtProperty("QColor", get_color, set_color)
+    color = Property("QColor", get_color, set_color)
 
 
 def text_to_qcolor(text):
@@ -104,7 +120,7 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if isinstance(text, QString):
+    if not isinstance(text, basestring): # testing for QString (PyQt API#1)
         text = str(text)
     if not isinstance(text, (unicode, str)):
         return color
