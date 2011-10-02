@@ -55,6 +55,13 @@ assert _modname in ('pyqt', 'pyside')
 
 if os.environ['QT_API'] == 'pyqt':
     try:
+        import PyQt4  # analysis:ignore
+    except ImportError:
+        # Switching to PySide
+        os.environ['QT_API'] = _modname = 'pyside'
+
+if os.environ['QT_API'] == 'pyqt':
+    try:
         from PyQt4.QtGui import QFormLayout
     except ImportError:
         raise ImportError, "formlayout requires PyQt4 4.4+ (or PySide)"
@@ -68,7 +75,8 @@ if os.environ['QT_API'] == 'pyqt':
     from PyQt4.QtCore import Qt, SIGNAL, SLOT, QSize
     from PyQt4.QtCore import pyqtSlot as Slot
     from PyQt4.QtCore import pyqtProperty as Property
-else:
+
+if os.environ['QT_API'] == 'pyside':
     from PySide.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
                      QIcon, QStyle, QDialogButtonBox, QHBoxLayout,
                      QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
