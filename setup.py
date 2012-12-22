@@ -10,7 +10,7 @@ formlayout
 
 Module creating PyQt4 form dialogs/layouts to edit various type of parameters
 
-Copyright © 2009 Pierre Raybaut
+Copyright © 2009-2012 Pierre Raybaut
 This software is licensed under the terms of the GNU General Public
 License version 2 as published by the Free Software Foundation.
 """
@@ -50,7 +50,8 @@ setup(
         'Operating System :: OS Independent',
         'Operating System :: POSIX',
         'Operating System :: Unix',
-        'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         ],
     )
