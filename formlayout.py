@@ -34,7 +34,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # ----+- Python 3 compatibility -+----
-from __future__ import print_function
 try:
     basestring
 except NameError:
