@@ -11,6 +11,9 @@ Please take a look at formlayout.py for more examples
 (at the end of the script, after the 'if __name__ == "__main__":' line)
 """
 
+# ----+- Python 3 compatibility -+----
+from __future__ import print_function
+
 from formlayout import fedit
 
 def create_datalist_example():
@@ -34,17 +37,17 @@ def create_datagroup_example():
 
 #--------- datalist example
 datalist = create_datalist_example()
-print "result:", fedit(datalist, title="Example",
-                       comment="This is just an <b>example</b>.")
+print("result:", fedit(datalist, title="Example",
+                       comment="This is just an <b>example</b>."))
 
 #--------- datagroup example
 datagroup = create_datagroup_example()
-print "result:", fedit(datagroup, "Global title")
+print("result:", fedit(datagroup, "Global title"))
     
 #--------- datagroup inside a datagroup example
 datalist = create_datalist_example()
 datagroup = create_datagroup_example()
-print "result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
+print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
                         (datalist, "Title 2", "Tab 2 comment"),
                         (datalist, "Title 3", "Tab 3 comment")),
-                        "Global title")
+                        "Global title"))

@@ -11,6 +11,9 @@ Please take a look at formlayout.py for more examples
 (at the end of the script, after the 'if __name__ == "__main__":' line)
 """
 
+# ----+- Python 3 compatibility -+----
+from __future__ import print_function
+
 from formlayout import fedit
 
 datalist = [('Name', 'Paul'),
@@ -21,5 +24,5 @@ datalist = [('Name', 'Paul'),
             ('Married', True),
             ]
 
-print "result:", fedit(datalist, title="Describe yourself",
-                       comment="This is just an <b>example</b>.")
+print("result:", fedit(datalist, title="Describe yourself",
+                       comment="This is just an <b>example</b>."))
