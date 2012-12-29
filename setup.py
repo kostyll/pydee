@@ -36,7 +36,7 @@ setup(
       description = description,
       download_url = 'http://%s.googlecode.com/files/%s-%s.tar.gz' % (name, name, version),
       author = "Pierre Raybaut",
-      author_email = 'contact@pythonxy.com',
+      author_email = 'pierre.raybaut@gmail.com',
       url = 'http://code.google.com/p/%s/' % name,
       license = 'MIT',
       keywords = keywords,
