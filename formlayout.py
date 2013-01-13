@@ -249,7 +249,7 @@ class FontLayout(QGridLayout):
 
 def is_edit_valid(edit):
     text = edit.text()
-    state, _t = edit.validator().validate(text, 0)
+    state = edit.validator().validate(text, 0)[0]
     return state == QDoubleValidator.Acceptable
 
 class FormWidget(QWidget):
