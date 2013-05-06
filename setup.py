@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009 Pierre Raybaut
+# Copyright © 2009-2013 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see formlayout.py for details)
 
@@ -8,9 +8,10 @@
 formlayout
 ==========
 
-Module creating PyQt4 form dialogs/layouts to edit various type of parameters
+Module for creating Qt form dialogs/layouts to edit various type of parameters,
+compatible with both PyQt4 and PySide
 
-Copyright © 2009-2012 Pierre Raybaut
+Copyright © 2009-2013 Pierre Raybaut
 This software is licensed under the terms of the GNU General Public
 License version 2 as published by the Free Software Foundation.
 """
@@ -20,10 +21,9 @@ name = 'formlayout'
 version = module.__version__
 py_modules = ['formlayout']
 package_data = {}
-description = 'Module creating PyQt4 form dialogs/widgets to edit various type of parameters'
-keywords = 'PyQt4 GUI'
-classifiers = ['Development Status :: 5 - Production/Stable',
-               ]
+description = 'Module for creating Qt form dialogs/widgets to edit various type of parameters, compatible with both PyQt4 and PySide'
+keywords = 'PyQt4 PySide GUI'
+classifiers = ['Development Status :: 5 - Production/Stable']
 
 try:
     from setuptools import setup
@@ -34,7 +34,7 @@ setup(
       name = name,
       version = version,
       description = description,
-      download_url = 'http://%s.googlecode.com/files/%s-%s.tar.gz' % (name, name, version),
+      download_url = 'http://%s.googlecode.com/files/%s-%s.zip' % (name, name, version),
       author = "Pierre Raybaut",
       author_email = 'pierre.raybaut@gmail.com',
       url = 'http://code.google.com/p/%s/' % name,
