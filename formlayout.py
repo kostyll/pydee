@@ -36,6 +36,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import print_function
 
 # History:
+# 1.0.15: added support for multiline strings
 # 1.0.14: fixed Python 3 support (regression in 1.0.13)
 # 1.0.13: replaced obsolete QColorDialog.getRgba function and fixed other 
 #         compatibility issues with PySide (see Issue 8 of formlayout website)
@@ -45,7 +46,7 @@ from __future__ import print_function
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.14'
+__version__ = '1.0.15'
 __license__ = __doc__
 
 DEBUG_FORMLAYOUT = False
