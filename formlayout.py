@@ -76,7 +76,7 @@ if os.environ['QT_API'] == 'pyqt':
                      QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
                      QColorDialog, QPixmap, QTabWidget, QApplication,
                      QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
-                     QFontComboBox, QFontDatabase, QGridLayout,
+                     QFontComboBox, QFontDatabase, QGridLayout, QTextEdit,
                      QDoubleValidator)
     from PyQt4.QtCore import Qt, SIGNAL, SLOT, QSize
     from PyQt4.QtCore import pyqtSlot as Slot
@@ -88,13 +88,25 @@ if os.environ['QT_API'] == 'pyside':
                      QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
                      QColorDialog, QPixmap, QTabWidget, QApplication,
                      QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
-                     QFontComboBox, QFontDatabase, QGridLayout,
+                     QFontComboBox, QFontDatabase, QGridLayout, QTextEdit,
                      QDoubleValidator, QFormLayout)
     from PySide.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 
 
 # ----+- Python 3 compatibility -+----
 PY2 = sys.version[0] == '2'
+
+if PY2:
+    # Python 2
+    import codecs
+    def u(obj):
+        """Make unicode object"""
+        return codecs.unicode_escape_decode(obj)[0]
+else:
+    # Python 3
+    def u(obj):
+        """Return string as it is"""
+        return obj
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
@@ -338,7 +350,13 @@ class FormWidget(QWidget):
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
             elif is_text_string(value):
-                field = QLineEdit(value, self)
+                if '\n' in value:
+                    for linesep in (os.linesep, '\n'):
+                        if linesep in value:
+                            value = value.replace(linesep, u("\u2029"))
+                    field = QTextEdit(value, self)
+                else:
+                    field = QLineEdit(value, self)
             elif isinstance(value, (list, tuple)):
                 value = list(value)  # in case this is a tuple
                 selindex = value.pop(0)
@@ -394,7 +412,11 @@ class FormWidget(QWidget):
             elif tuple_to_qfont(value) is not None:
                 value = field.get_font()
             elif is_text_string(value):
-                value = to_text_string(field.text())
+                if isinstance(field, QTextEdit):
+                    value = to_text_string(field.toPlainText()
+                                           ).replace(u("\u2029"), os.linesep)
+                else:
+                    value = to_text_string(field.text())
             elif isinstance(value, (list, tuple)):
                 index = int(field.currentIndex())
                 if isinstance(value[0], int):
@@ -603,6 +625,9 @@ if __name__ == "__main__":
 
     def create_datalist_example():
         return [('str', 'this is a string'),
+                ('str', """this is a 
+                MULTILINE
+                string"""),
                 ('list', [0, '1', '3', '4']),
                 ('list2', ['--', ('none', 'None'), ('--', 'Dashed'),
                            ('-.', 'DashDot'), ('-', 'Solid'),
