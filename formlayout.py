@@ -33,15 +33,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# ----+- Python 3 compatibility -+----
 from __future__ import print_function
-try:
-    basestring
-except NameError:
-    # Python 3
-    basestring = unicode = str
 
 # History:
+# 1.0.14: fixed Python 3 support (regression in 1.0.13)
 # 1.0.13: replaced obsolete QColorDialog.getRgba function and fixed other 
 #         compatibility issues with PySide (see Issue 8 of formlayout website)
 # 1.0.12: added support for Python 3
@@ -50,10 +45,10 @@ except NameError:
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.13'
+__version__ = '1.0.14'
 __license__ = __doc__
 
-DEBUG = False
+DEBUG_FORMLAYOUT = False
 
 import os
 import sys
@@ -98,6 +93,52 @@ if os.environ['QT_API'] == 'pyside':
     from PySide.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 
 
+# ----+- Python 3 compatibility -+----
+PY2 = sys.version[0] == '2'
+
+def is_text_string(obj):
+    """Return True if `obj` is a text string, False if it is anything else,
+    like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
+    if PY2:
+        # Python 2
+        return isinstance(obj, basestring)
+    else:
+        # Python 3
+        return isinstance(obj, str)
+
+def is_binary_string(obj):
+    """Return True if `obj` is a binary string, False if it is anything else"""
+    if PY2:
+        # Python 2
+        return isinstance(obj, str)
+    else:
+        # Python 3
+        return isinstance(obj, bytes)
+
+def is_string(obj):
+    """Return True if `obj` is a text or binary Python string object,
+    False if it is anything else, like a QString (Python 2, PyQt API #1)"""
+    return is_text_string(obj) or is_binary_string(obj)
+
+def to_text_string(obj, encoding=None):
+    """Convert `obj` to (unicode) text string"""
+    if PY2:
+        # Python 2
+        if encoding is None:
+            return unicode(obj)
+        else:
+            return unicode(obj, encoding)
+    else:
+        # Python 3
+        if encoding is None:
+            return str(obj)
+        elif isinstance(obj, str):
+            # In case this function is not used properly, this could happen
+            return obj
+        else:
+            return str(obj, encoding)
+
+
 class ColorButton(QPushButton):
     """
     Color choosing push button
@@ -137,9 +178,9 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if not isinstance(text, basestring): # testing for QString (PyQt API#1)
+    if not is_string(text): # testing for QString (PyQt API#1)
         text = str(text)
-    if not isinstance(text, (unicode, str)):
+    if not is_text_string(text):
         return color
     if text.startswith('#') and len(text)==7:
         correct = '#0123456789abcdef'
@@ -181,7 +222,8 @@ class ColorLayout(QHBoxLayout):
     
 def font_is_installed(font):
     """Check if font is installed"""
-    return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
+    return [fam for fam in QFontDatabase().families()
+            if to_text_string(fam) == font]
 
 def tuple_to_qfont(tup):
     """
@@ -203,7 +245,7 @@ def tuple_to_qfont(tup):
     return font
 
 def qfont_to_tuple(font):
-    return (unicode(font.family()), int(font.pointSize()),
+    return (to_text_string(font.family()), int(font.pointSize()),
             font.italic(), font.bold())
 
 class FontLayout(QGridLayout):
@@ -263,7 +305,7 @@ class FormWidget(QWidget):
         if comment:
             self.formlayout.addRow(QLabel(comment))
             self.formlayout.addRow(QLabel(" "))
-        if DEBUG:
+        if DEBUG_FORMLAYOUT:
             print("\n"+("*"*80))
             print("DATA:", self.data)
             print("*"*80)
@@ -279,7 +321,7 @@ class FormWidget(QWidget):
 
     def setup(self):
         for label, value in self.data:
-            if DEBUG:
+            if DEBUG_FORMLAYOUT:
                 print("value:", value)
             if label is None and value is None:
                 # Separator: (None, None)
@@ -295,7 +337,7 @@ class FormWidget(QWidget):
                 field = FontLayout(value, self)
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
-            elif isinstance(value, (str, unicode)):
+            elif is_text_string(value):
                 field = QLineEdit(value, self)
             elif isinstance(value, (list, tuple)):
                 value = list(value)  # in case this is a tuple
@@ -351,8 +393,8 @@ class FormWidget(QWidget):
                 continue
             elif tuple_to_qfont(value) is not None:
                 value = field.get_font()
-            elif isinstance(value, (str, unicode)):
-                value = unicode(field.text())
+            elif is_text_string(value):
+                value = to_text_string(field.text())
             elif isinstance(value, (list, tuple)):
                 index = int(field.currentIndex())
                 if isinstance(value[0], int):
